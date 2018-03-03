@@ -1,0 +1,363 @@
+﻿@{
+    int indexMetrics = 0;
+    var today = DateTime.Now.ToShortDateString();
+}
+
+
+<script src="~/Scripts/jquery-latest.js"></script>
+<script src="~/Scripts/jquery.tablesorter.min.js"></script>
+@if (Convert.ToBoolean(ViewData["MainAdmin"]))
+{
+    <style>
+        .requestTable td {
+            padding: 1px 5px;
+        }
+
+        .requestTable tr {
+            padding: 0px 0px;
+        }
+
+        .formHead {
+            background-color: #303d64;
+            color: white;
+            height: 50px;
+            padding: 10px;
+            border-top-left-radius: 4px;
+            border-top-right-radius: 4px;
+        }
+
+        .formBody {
+            padding: 15px;
+            -webkit-box-shadow: 8px 14px 19px -8px rgba(0,0,0,0.75);
+            -moz-box-shadow: 8px 14px 19px -8px rgba(0,0,0,0.75);
+            box-shadow: 8px 8px 19px -8px rgba(0,0,0,0.75);
+        }
+
+        .queryButton {
+            width: 120px;
+            border: 1px solid;
+            height: 88px;
+            background: rgb(89, 80, 100);
+            white-space: pre-wrap; /* CSS3 */
+            white-space: -moz-pre-wrap; /* Firefox */
+            white-space: -pre-wrap; /* Opera <7 */
+            white-space: -o-pre-wrap; /* Opera 7 */
+            word-wrap: break-word;
+            color: white;
+            padding-top: 15px;
+        }
+
+            .queryButton:hover, .queryButton:active, .queryButton:focus {
+                background: rgb(61, 57, 66);
+                color: white;
+            }
+
+
+        #queryOptions {
+            border-top: 1px solid rgb(129, 129, 129);
+            border-bottom: 1px solid rgb(129, 129, 129);
+            color: rgb(129, 129, 129);
+            height: 100px;
+            padding: 5px;
+        }
+
+        .resultForApprove {
+            min-height: 150px;
+            border: 1px solid;
+            border-radius: 4px;
+            padding: 0;
+            cursor: pointer;
+            margin-bottom: 10px;
+        }
+
+        #CalcHeader {
+            text-align: center;
+            background-color: #f1ae51;
+            border-top-left-radius: 4px;
+            border-top-right-radius: 4px;
+            color: white;
+            padding: 1px;
+            margin: 0;
+        }
+
+        #CalcBody {
+            padding: 4px;
+            -webkit-box-shadow: 8px 14px 19px -8px rgba(0,0,0,0.75);
+            -moz-box-shadow: 8px 14px 19px -8px rgba(0,0,0,0.75);
+            box-shadow: 8px 8px 19px -8px rgba(0,0,0,0.75);
+            /*background-color:white;*/
+        }
+
+            #CalcBody p {
+                margin: 4px;
+            }
+    </style>
+    <div id="page-wrapper">
+        <div class="row">
+            <div class="col-lg-12">
+                <h1 class="page-header"><span style="margin-top: 10px">Audit Log</span><a href="http://Home/Index"><img src="~/Images/Logo.png" style="width:80px; float: right; margin-top: -10px;cursor:pointer;" /></a></h1>
+
+            </div>
+
+        </div>
+        <div style="clear:both"></div>
+
+        <div id="queryOptions">
+            <div class="queryButton btn 1">Monthy Saftey Equipment Checklist</div>
+        </div>
+        <br />
+
+        <div class="row">
+            <div class="col-lg-9">
+
+                <table style="width:100%">
+                    <tr>
+                        <td style="padding:4px 4px;"><label>Date Checked:</label></td>
+                        <td style="padding:4px 4px;"><input type="text" id="datechecked" class="form-control" value="@DateTime.Now.ToShortDateString()" /></td>
+
+                        <td style="padding:4px 4px;"><label>Continue:</label></td>
+                        <td><select type="text" class="form-control l" id="contDropDown">
+                            <option selected>Please Select a Report</option>
+                            @foreach (var report in ViewBag.IncompleteAuditReport)
+                            {
+                                <option id="contReport" value="@report.ReportID">@report.ReportID</option>
+                            }
+                        </select>
+                        </td>
+
+                        <td style="padding:4px 4px;"><label>Checked By:</label></td>
+                        <td style="padding:4px 4px;"><input type="text" id="checkedby" value="@System.Web.HttpContext.Current.Application["UserFullName"].ToString()" class="form-control" /></td>
+                        <td style="padding:4px 4px;"><input type="button" id="startreport" value="Start Report" class="btn btn-primary" /></td>
+
+                    </tr>
+                   
+                </table>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-9 mapimageholder">
+               
+                <img id="Image-Maps-Com-safetyauditmap" src="~/Images/auditmap/SafetyAudit.jpg" border="0" width="1221" height="865" orgWidth="1221" orgHeight="865" usemap="#safetyauditmap" alt="" />
+                <map name="safetyauditmap" id="ImageMapsCom-safetyauditmap">
+                    <area id="4" alt="Warehouse B" title="Warehouse B" href="" shape="rect" coords="559,50,998,255" style="outline:none;" target="_self" />
+                    <area id="46" alt="Warehouse B Staircase" title="Warehouse B Staircase" href="" shape="rect" coords="1091,50,1195,213" style="outline:none;" target="_self" />
+                    <area id="47" alt="Main Office Staircase" title="Main Office Staircase" href="" shape="rect" coords="1085,498,1193,672" style="outline:none;" target="_self" />
+                    <area id="5" alt="Warehouse C" title="Warehouse C" href=" shape="rect" coords="559,255,857,461" style="outline:none;" target="_self" />
+                    <area id="3" alt="Warehouse A" title="Warehouse A" href="" shape="rect" coords="858,256,1065,757" style="outline:none;" target="_self" />
+                    <area id="42" alt="Warehouse B Exit" title="Warehouse B Exit" href="" shape="rect" coords="1001,49,1068,78" style="outline:none;" target="_self" />
+                    <area id="24" alt="Photo Room" title="Photo Room" href="" shape="rect" coords="998,78,1066,200" style="outline:none;" target="_self" />
+                    <area id="41" alt="Warehouse B Rest Rooms" title="Warehouse B Rest Rooms" href="" shape="rect" coords="995,200,1063,256" style="outline:none;" target="_self" />
+                    <area id="7" alt="Truck Wells" title="Truck Wells" href="" shape="rect" coords="587,461,858,582" style="outline:none;" target="_self" />
+                    <area id="25" alt="Warehouse D" title="Warehouse D" href="" shape="rect" coords="392,256,556,461" style="outline:none;" target="_self" />
+                    <area id="9" alt="Store" title="Store" href="" shape="rect" coords="329,761,441,812" style="outline:none;" target="_self" />
+                    <area id="10" alt="Airmax Conference Room" title="Airmax Conference Room" href="" shape="rect" coords="440,760,552,811" style="outline:none;" target="_self" />
+                    <area id="39" alt="Store Exit" title="Store Exit" href="" shape="rect" coords="290,686,326,765" style="outline:none;" target="_self" />
+                    <area id="45" alt="Service Trucks" title="Service Trucks" href="" shape="rect" coords="32,476,230,660" style="outline:none;" target="_self" />
+                    <area id="43" alt="Fork Lifts" title="Fork Lifts" href="" shape="rect" coords="28,694,238,865" style="outline:none;" target="_self" />
+                    <area id="44" alt="Break Room" title="Break Room" href="" shape="rect" coords="328,684,422,725" style="outline:none;" target="_self" />
+                    <area id="8" alt="Service Office" title="Service Office" href="" shape="rect" coords="327,724,422,760" style="outline:none;" target="_self" />
+                    <area id="48" alt="Loft Area" title="Loft Area" href="" shape="rect" coords="438,726,572,760" style="outline:none;" target="_self" />
+                    @*<area id="40" alt="Main Office Exit" title="Main Office Exit" href="" shape="rect" coords="1064,701,1130,717" style="outline:none;" target="_self" />*@
+                    <area id="49" alt="Main Office" title="Main Office" href="" shape="rect" coords="1005,759,1161,856" style="outline:none;" target="_self" />
+                    <area shape="rect" coords="1219,863,1221,865" alt="Image Map" style="outline:none;" title="Image Map" href="http://www.image-maps.com/index.php?aff=mapped_users_87463" />
+                    <area id="38" alt="Production" title="Production" href="" shape="poly" coords="291,461,289,683,422,684,423,724,573,724,588,725,586,461" style="outline:none;" target="_self" />
+                </map>
+
+                @*partial view for map area pop up*@
+                <div id="maprecorder" class="white_content2" style="height:550px; width:100%;"></div>
+                @*equipment checklist count*@ 
+                <span id="mapcount"></span>
+
+                <div id="fade2" class="black_overlay"></div>
+            </div>
+        </div>
+
+        @*hidden div for passing reportid*@
+        <div><input type="text" style="display:none;" id="hiddenreportid" /></div>
+
+        <div > <input type="button" id="completeReport" value="Complete Report" class="btn btn-success" /> </div> 
+        <br />
+        <div>   <input type="button" id="pullhistory" value="Export Reports" class="btn btn-success" /></div>
+   
+        
+        <style>
+            #ImageMapsCom-safetyauditmap area:focus {
+                border-color: #ff0000;
+            }
+        </style>
+
+    </div>
+
+    <script>
+
+        //variable declaration for date time used in reportid
+        var d = new Date();
+        var month = d.getMonth() + 1;
+        var day = d.getDate();
+
+        var output = 
+            (month < 10 ? '0' : '') + month + '/' +
+            (day < 10 ? '0' : '') + day + '/' +
+            d.getFullYear();
+
+        var reportID = "";
+
+        //flag that determines which reportid to use
+        var flag = 0;
+
+        //this hides the map at the beginning
+        $(document).ready(function () {
+            $('.mapimageholder').hide();
+        });
+
+        //completes the report you are working on
+        $('#completeReport').click(function () {
+
+            if (flag == 1) {
+                reportID = "EquipCheck" + output
+            }
+            else {
+                reportID = reportID;
+            }
+
+            $.ajax({
+                type: "POST",
+                url: "/Maintenance/CompleteReport",
+                data: {
+                    "endDate": getDateTime(),
+                    "reportID": reportID
+                },
+                success: function () {
+                    location.reload();
+                    $('.mapimageholder').hide();
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+
+                }
+
+            });
+        });
+
+
+        //starting a new report and having map show
+        $('#startreport').click(function () {
+
+            $('.mapimageholder').show();
+
+            flag = 1;
+            var reportID2 = "EquipCheck" + output;
+            var user = $("#checkedby").val().toString();
+
+            $.ajax({
+                type: "POST",
+                url: "/Maintenance/StartReport",
+                data: {
+                    "reportID": reportID2,
+                    "startDate": getDateTime(),
+                    "user": user
+                },
+                success: function (result) {
+                    $('#hiddenreportid').val(reportID2);
+
+                    if (result == -1) {
+                        alert("There is already a report for this day. Please continue that report");
+                        location.reload();
+                    }
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+                    alert("error");
+                }
+            });
+        });
+
+
+        //this will allow user to continue a already started report
+        $('select').change(function () {
+            $('.mapimageholder').show();
+
+            $("select option:selected").each(function () {
+                reportID = $(this).text();
+            });
+        });
+
+
+        $('.closeLight').click(function () {
+            $('#maprecorder').hide();
+            $('#fade2').hide();
+        });
+
+
+        //click on map area to bring up partial view of the equipment checklist int hat area
+        $('#ImageMapsCom-safetyauditmap area').click(function (e) {
+
+            e.preventDefault();
+            var type = $(this).attr('id').toString();
+
+            if (flag == 1) {
+                reportID = "EquipCheck" + output
+            }
+            else {
+                reportID = reportID;
+                $('#hiddenreportid').val(reportID);
+            }
+
+            $.ajax({
+                type: "POST",
+                url: "/Maintenance/AuditEquipment",
+                data: {
+                    "id": parseInt(type),
+                    "reportid": reportID
+                },
+                success: function (result) {
+                    $('#maprecorder').html(result);
+
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+
+                    $('#maprecorder').html('Error!' + thrownError);
+                }
+            })
+
+            $('#maprecorder').show();
+        });
+
+        //getting full audit history for excel
+        $("#pullhistory").click(function () {
+
+            var typeOfReport = 1;
+            $('#exportWorking').html('<img style="width:50px" src="http://Images/loading_spinner.gif" />');
+            $.ajax({
+                type: 'POST',
+                url: '/Maintenance/HistoricalAuditReport',
+                data: {
+                    'typeOfReport': typeOfReport
+                },
+                cache: false,
+                success: function (result) {
+                    window.location = 'http://localhost:57813/Marketing/Download?file=' + result;
+                    $('#exportWorking').html('');
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+                }
+            });
+        });
+
+    </script>
+}
+else
+{
+    <div id="page-wrapper">
+        <div class="row">
+            <div class="col-lg-12">
+                <h1 class="page-header"><span style="margin-top: 10px">Audit Log</span><a href="http://Home/Index"><img src="~/Images/Logo.png" style="width:80px; float: right; margin-top: -10px;cursor:pointer;" /></a></h1>
+
+            </div>
+
+        </div>
+        <div style="clear:both"></div>
+
+        <h2>Access Denied!</h2>
+
+    </div>
+}

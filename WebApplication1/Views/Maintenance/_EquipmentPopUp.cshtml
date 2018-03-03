@@ -1,0 +1,392 @@
+﻿@{  //variable declaration for dynamic ids
+    int index = 0;
+    string radioButton = "";
+    string issueID = "";
+    string checkedID = "";
+    string label = "";
+}
+
+@*beginning of if loop when viewbag has data in it*@ 
+@if (ViewBag.EquipmentType.Count > 0)
+{
+    //mapcapturetitle is the map title that display on top of each map popup
+    <h3><span id="mapcapturetitle">@ViewData["Locations"]</span>  <span class="imageError"></span><button data-dz-remove class="btn btn-warning cancel closeLight"><i class="glyphicon glyphicon-ban-circle"></i> <span>Close</span></button> </h3>
+    <div class="clearfix"></div>
+    <br />
+    <input type="hidden" class="usertochange" value="" />
+    <div id="TaskTable">
+        @*table that display each equipment items in each map area.
+            it loops thru the viewbag for items and dynamically generate id for each line. 
+            script tag is generated for everyline item as well to work with the dynamic ids*@
+        <table style="white-space: nowrap;">
+
+            <tr>Equipment Type:</tr>
+
+            @foreach (var equip in ViewBag.EquipmentType)
+            {
+                //indexs and declaration for the dynamic ids
+                index++;
+                radioButton = "radioButton" + index;
+                issueID = "issueID" + index;
+                checkedID = "checkedID" + index;
+                label = "label" + index;
+
+                //beginning of if loop that checks if the items in the viewbags have been checked prior
+                if (@equip.WasItChecked == 0)
+                {
+                    <tr>
+                        <td class="col-sm-3">@equip.EquipmentType</td>
+                        <td><input type="checkbox" id="@radioButton" /> </td> 
+                        <td><label>Status</label></td>
+
+                        <td>
+                            <div class="parentBox">
+                                <div class="issueBox col-sm-5">
+                                    <input id="@issueID" type="text" />
+                                </div>
+                                <div class="checkedBox col-sm-3" id="@checkedID">
+                                    <label id="checkedby">By @System.Web.HttpContext.Current.Application["UserFullName"].ToString() </label>
+                                    <label>On @DateTime.Now.ToShortDateString() </label>
+                                </div>
+                            </div>
+                        </td>
+                        <td style="display:none;">
+                            <script>
+
+                         //click listener for the checkbox. Enters a new row into db and hides the issue input
+                         //also runs the mapcount check at success of ajax.
+                         $('#@radioButton').click(function () {
+
+                                    $(@issueID).hide();
+
+                                    $(@checkedID).show();
+
+                                    var reportID = $('#hiddenreportid').val();
+
+                                    var safetyEquipmentID = @equip.EquipmentID;
+                                    if ($(this).is(':checked')) {
+                                        var wasItChecked = "true";
+                                    }
+                                    if ($(@issueID).val() == '') {
+                                        var notes = "Checked";
+                                    } else {
+                                        var notes = $(@issueID).val();
+                                    }
+                                    var dateChecked = getDateTime();
+                                    var user = $('#checkedby').val() ;
+
+
+                                    $.ajax({
+                                        type: 'POST',
+                                        url: '/Maintenance/AuditChecks',
+                                        data: {
+                                            'ReportID': reportID,
+                                            'SafetyEquipmentID': safetyEquipmentID,
+                                            'WasItChecked': wasItChecked,
+                                            'Notes': notes,
+                                            'DateChecked': dateChecked,
+                                            'User': user
+                                        },
+                                        cache:false,
+                                        success: function () {
+
+                                            $.ajax({
+                                                type: "POST",
+                                                url: "/Maintenance/GetMapCount",
+                                                data: {
+                                                    "reportid": reportID
+                                                },
+                                                success: function (data) {
+
+                                                    if (data > 70) {
+                                                        $('#mapcount').html(data + " out of 71 checks completed.")
+                                                            .css("background-color", "lightgreen");
+                                                    }
+                                                    else {
+                                                        $('#mapcount').html(data + " out of 71 checks completed.")
+                                                            .css("background-color", "red");
+                                                    }
+
+                                                },
+                                                error: function (xhr, ajaxOptions, thrownError) {
+                                                    $('#mapcount').html('error!' + thrownError);
+                                                }
+                                            })
+
+                                        },
+                                        error: function (xhr, ajaxOptions, thrownError) {
+
+                                        }
+                                    });
+                            });
+
+                            //hides the checkbox when inputing issue descriptions 
+                            $('#@issueID').change(function() {
+                                if ($(this).val()) {
+                                    $(@radioButton).hide();
+                                }
+                                else {
+                                    $(@radioButton).show();
+                                }
+                   
+
+                            });
+
+                            //enter rows to db when focus out of input issue description
+                            $(@issueID).focusout(function () {
+
+                                    var reportID = $('#hiddenreportid').val();
+                                    var safetyEquipmentID = @equip.EquipmentID;
+                                    var wasItChecked = "true";
+
+                                    if ($(@issueID).val() == '') {
+                                        $('#@issueID').css("background-color", "coral");
+                                        return;
+                                    } else {
+                                        $('#@issueID').css("background-color", "white");
+                                        var notes = $(@issueID).val();
+                                    }
+                                    var dateChecked = getDateTime();
+                                    var user = $('#checkedby').val() ;
+
+
+                                    $.ajax({
+                                        type: 'POST',
+                                        url: '/Maintenance/AuditChecks',
+                                        data: {
+                                            'ReportID': reportID,
+                                            'SafetyEquipmentID': safetyEquipmentID,
+                                            'WasItChecked': wasItChecked,
+                                            'Notes': notes,
+                                            'DateChecked': dateChecked,
+                                            'User': user
+                                        },
+                                        cache:false,
+                                        success: function () {
+
+                                            $.ajax({
+                                                type: "POST",
+                                                url: "/Maintenance/GetMapCount",
+                                                data: {
+                                                    "reportid": reportID
+                                                },
+                                                success: function (data) {
+                              
+
+                                                    if (data > 70) {
+                                                        $('#mapcount').html(data + " out of 71 checks completed.")
+                                                            .css("background-color", "lightgreen");
+                                                    }
+                                                    else {
+                                                        $('#mapcount').html(data + " out of 71 checks completed.")
+                                                            .css("background-color", "red");
+                                                    }
+
+                                                },
+                                                error: function (xhr, ajaxOptions, thrownError) {
+                                                    $('#mapcount').html('error!' + thrownError);
+                                                }
+                                            })
+
+                                        },
+                                        error: function (xhr, ajaxOptions, thrownError) {
+
+                                        }
+                                    });
+
+                                });
+
+                            </script>
+                        </td>
+
+                    </tr>
+
+                }
+                //else loop if the items in the viewbags are new/blank
+                else
+                {
+                    <tr>
+                        <td class="col-sm-3">@equip.EquipmentType</td>
+                        <td><input class="checkedBox" type="checkbox" id="@radioButton"/></td>
+                        <td> <label>Status</label></td>
+
+                        <td class="col-sm-9">
+                            <div class="parentBox">
+                                <div class="issueBox">
+                                    <input id="@issueID" type="text" value="@equip.Notes"/> 
+                                    <label id="checkedby">By: @equip.User</label> 
+                                    <label>On @equip.DateChecked </label>
+                                </div>
+                                <div class="checkedBox" id="@checkedID">
+
+                                </div>
+                            </div>
+                        </td>
+                        <td style="display:none;">
+                            <script>
+
+                                $('#@radioButton').click(function () {
+
+                                    $(@issueID).hide();
+
+                                    $(@checkedID).show();
+
+                                    var reportID = $('#hiddenreportid').val();
+
+                                    var safetyEquipmentID = @equip.EquipmentID;
+                                    if ($(this).is(':checked')) {
+                                        var wasItChecked = "true";
+                                    }
+                                    if ($(@issueID).val() == '') {
+                                        var notes = "Checked";
+                                    } else {
+                                        var notes = $(@issueID).val();
+                                    }
+                                    var dateChecked = getDateTime();
+                                    var user = $('#checkedby').val() ;
+
+
+                                    $.ajax({
+                                        type: 'POST',
+                                        url: '/Maintenance/AuditChecks',
+                                        data: {
+                                            'ReportID': reportID,
+                                            'SafetyEquipmentID': safetyEquipmentID,
+                                            'WasItChecked': wasItChecked,
+                                            'Notes': notes,
+                                            'DateChecked': dateChecked,
+                                            'User': user
+                                        },
+                                        cache:false,
+                                        success: function () { 
+
+                                            $.ajax({
+                                                type: "POST",
+                                                url: "/Maintenance/GetMapCount",
+                                                data: {
+                                                    "reportid": reportID
+                                                },
+                                                success: function (data) {
+                                      
+
+                                                    if (data > 70) {
+                                                        $('#mapcount').html(data + " out of 71 checks completed.")
+                                                            .css("background-color", "lightgreen");
+                                                    }
+                                                    else {
+                                                        $('#mapcount').html(data + " out of 71 checks completed.")
+                                                            .css("background-color", "red");
+                                                    }
+
+                                                },
+                                                error: function (xhr, ajaxOptions, thrownError) {
+                                                    $('#mapcount').html('error!' + thrownError);
+                                                }
+                                            })
+
+                                        },
+                                        error: function (xhr, ajaxOptions, thrownError) {
+
+                                        }
+                                    });
+                                });
+
+                                $('#@issueID').change(function() {
+                                if ($(this).val()) {
+                                    $(@radioButton).hide();
+                                }
+                                else {
+                                    $(@radioButton).show();
+                                }
+                            });
+
+
+                            $(@issueID).focusout(function () {
+
+                                    var reportID = $('#hiddenreportid').val();
+                                    var safetyEquipmentID = @equip.EquipmentID;
+                                    var wasItChecked = "true";
+
+                                    if ($(@issueID).val() == '') {
+                                        $('#@issueID').css("background-color", "coral");
+                                        return;
+                                    } else {
+                                        $('#@issueID').css("background-color", "white");
+                                        var notes = $(@issueID).val();
+                                    }
+                                    var dateChecked = getDateTime();
+                                    var user = $('#checkedby').val() ;
+
+
+                                    $.ajax({
+                                        type: 'POST',
+                                        url: '/Maintenance/AuditChecks',
+                                        data: {
+                                            'ReportID': reportID,
+                                            'SafetyEquipmentID': safetyEquipmentID,
+                                            'WasItChecked': wasItChecked,
+                                            'Notes': notes,
+                                            'DateChecked': dateChecked,
+                                            'User': user
+                                        },
+                                        cache:false,
+                                        success: function () { 
+                                            $.ajax({
+                                                type: "POST",
+                                                url: "/Maintenance/GetMapCount",
+                                                data: {
+                                                    "reportid": reportID
+                                                },
+                                                success: function (data) {
+                                               
+
+                                                    if (data > 70) {
+                                                        $('#mapcount').html(data + " out of 71 checks completed.")
+                                                            .css("background-color", "lightgreen");
+                                                    }
+                                                    else {
+                                                        $('#mapcount').html(data + " out of 71 checks completed.")
+                                                            .css("background-color", "red");
+                                                    }
+
+                                                },
+                                                error: function (xhr, ajaxOptions, thrownError) {
+                                                    $('#mapcount').html('error!' + thrownError);
+                                                }
+                                            })
+
+                                        },
+                                        error: function (xhr, ajaxOptions, thrownError) {
+
+                                        }
+                                    });
+
+                            });
+                            </script>
+                        </td>
+                    </tr>
+                }
+
+            }
+
+        </table>
+    </div>
+}
+//else loop if view bag has no data
+else
+{
+    <label> No Data</label>
+}
+
+<script>                         
+                            $(document).ready(function () {
+                                $('.checkedBox').hide();
+
+                            });
+
+                            $('.closeLight').click(function () {
+                                $('#maprecorder').hide();
+                                $('#fade2').hide();
+                            });
+
+</script>
